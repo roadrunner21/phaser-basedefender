@@ -1,21 +1,22 @@
 import 'phaser';
 import Hero from "./Hero";
 import RandomDataGenerator = Phaser.Math.RandomDataGenerator;
-import { DOWN, LEFT, RIGHT, UP } from "./Character";
+import Character, { Directions, DOWN, LEFT, RIGHT, UP } from "./Character";
 import Enemy from "./Enemy";
 import Group = Phaser.GameObjects.Group;
 import Layer = Phaser.GameObjects.Layer;
+import Ghost from "./Enemies/Ghost";
+import Container = Phaser.GameObjects.Container;
 
 const GAME_WIDTH = Math.trunc(window.document.documentElement.clientWidth / 16) * 16;
 const GAME_HEIGHT = Math.trunc(window.document.documentElement.clientHeight / 16) * 16;
 
-
 let cursors;
 
 export default class Game extends Phaser.Scene {
-    hero;
-    enemy;
-    characters : Group;
+    hero: Hero;
+    enemies: Group;
+    characters: Group;
 
     preload() {
         this.load.spritesheet('basictiles', 'assets/basictiles.png', { frameWidth: 16, frameHeight: 16 });
@@ -47,41 +48,13 @@ export default class Game extends Phaser.Scene {
         }
 
         this.characters = this.add.group();
+        this.enemies = this.add.group();
+        this.enemies.runChildUpdate = true;
 
-        this.hero = new Hero(this, 'sprite', GAME_WIDTH / 2, GAME_HEIGHT / 2, {
-            key: 'characters',
-            walking: {
-                up: { start: 36, end: 38 },
-                right: { start: 24, end: 26 },
-                down: { start: 0, end: 2 },
-                left: { start: 12, end: 14 },
-            },
-            facing: {
-                up: 37,
-                right: 25,
-                down: 1,
-                left: 13,
-            }
-        });
+        new Ghost(this, GAME_WIDTH / 3, GAME_HEIGHT / 2);
+        this.hero = new Hero(this, GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
-        this.enemy = new Enemy(this, 'sprite', GAME_WIDTH / 3, GAME_HEIGHT / 2, 'ghost', {
-            key: 'characters',
-            walking: {
-                up: { start: 90, end: 92 },
-                right: { start: 78, end: 80 },
-                down: { start: 54, end: 56 },
-                left: { start: 66, end: 68 },
-            },
-            facing: {
-                up: 91,
-                right: 79,
-                down: 55,
-                left: 67,
-            }
-        });
-
-        layer = new Layer(this, [this.hero, this.enemy]);
-        layer.bringToTop(this.hero);
+        this.physics.world.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT, true, true, true, true)
 
         cursors = this.input.keyboard.createCursorKeys();
         cursors = this.input.keyboard.addKeys(
@@ -99,22 +72,27 @@ export default class Game extends Phaser.Scene {
         const keyRight = cursors.right.isDown;
         const keyDown = cursors.down.isDown;
         const keyLeft = cursors.left.isDown;
+        let directions: Directions = [];
 
         if (keyUp) {
-            this.hero.move(UP);
+            directions.push(UP);
         }
         if (keyRight) {
-            this.hero.move(RIGHT);
+            directions.push(RIGHT);
         }
         if (keyDown) {
-            this.hero.move(DOWN);
+            directions.push(DOWN);
         }
         if (keyLeft) {
-            this.hero.move(LEFT);
+            directions.push(LEFT);
         }
-        if(!keyUp && !keyRight && !keyDown && !keyLeft) {
+        if (!keyUp && !keyRight && !keyDown && !keyLeft) {
             this.hero.standBy();
+        } else {
+            this.hero.move(directions);
         }
+
+        this.enemies.preUpdate(time, delta);
     }
 }
 
@@ -123,6 +101,9 @@ const config = {
     backgroundColor: '#6DAA2B',
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
+    physics: {
+        default: 'arcade'
+    },
     scene: Game
 };
 

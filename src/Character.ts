@@ -1,9 +1,12 @@
 import 'phaser';
 import GameObject = Phaser.GameObjects.GameObject;
-import { Scene } from "phaser";
-import GenerateFrameNumbers = Phaser.Types.Animations.GenerateFrameNumbers;
 import Game from "./Game";
 import Layer = Phaser.GameObjects.Layer;
+import HealthBar from "./HealthBar";
+import Container = Phaser.GameObjects.Container;
+import Sprite = Phaser.Physics.Arcade.Sprite;
+import DYNAMIC_BODY = Phaser.Physics.Arcade.DYNAMIC_BODY;
+import Body = Phaser.Physics.Arcade.Body;
 
 export const UP = 'UP';
 export const RIGHT = 'RIGHT';
@@ -11,6 +14,8 @@ export const DOWN = 'DOWN';
 export const LEFT = 'LEFT';
 
 export type Direction = typeof UP | typeof RIGHT | typeof DOWN | typeof LEFT
+
+export type Directions = Array<Direction>;
 
 export type CharacterWalkingFrames = {
     up: Phaser.Types.Animations.GenerateFrameNumbers,
@@ -32,39 +37,60 @@ export type CharacterAnimationConfig = {
     facing: CharacterFacingFrames,
 }
 
-export default class Character extends GameObject {
+export default class Character extends Container {
     id: number = Math.round(Math.random() * 1000000000000000);
-    scene : Game = null;
+    scene: Game = null;
     speed = 100;
-    scale = 2;
-    entityPosition;
-    group: Phaser.GameObjects.Group = null;
+    spriteScale = 2;
     facing: Direction = DOWN;
-    characterSprite = null;
-    hitBox = {height: 0, width: 0};
-    layer: Layer;
+    characterSprite: Sprite = null;
+    hitBox = { height: 0, width: 0 };
+    healthBar: HealthBar;
+    body: Body;
 
-    constructor(scene: Game, type, x, y, name : string, animations : CharacterAnimationConfig) {
-        super(scene, type);
-
-        this.entityPosition = new Phaser.Geom.Point(x, y);
-        this.group = scene.add.group();
+    constructor(scene: Game, x, y, name: string, animations: CharacterAnimationConfig) {
+        super(scene, x, y);
 
         this.scene = scene;
-
-        this.characterSprite = this.scene.add.sprite(x, y, animations.key, animations.facing.down)
-        this.characterSprite.scale = this.scale;
-
-        this.hitBox.height = this.characterSprite.height * this.scale;
-        this.hitBox.width = this.characterSprite.width * this.scale;
-
-        this.group.add(this.characterSprite);
         this.name = name;
 
-        this.layer = this.scene.add.layer(this.characterSprite)
+        this.characterSprite = this.scene.physics.add.sprite(0, 0, animations.key, animations.facing.down)
+        this.characterSprite.scale = this.spriteScale;
+
+        this.hitBox.height = this.characterSprite.height * this.spriteScale;
+        this.hitBox.width = this.characterSprite.width * this.spriteScale;
 
         this.addAnimations(animations);
+
+        this.healthBar = new HealthBar(this.scene, -10, -16, this.getMaxHealth(), this.getHealth());
+
+        this.add([this.characterSprite, this.healthBar]);
+        this.setSize(this.hitBox.width, this.hitBox.height);
+
+        this.scene.physics.world.enableBody(this, DYNAMIC_BODY);
+        this.scene.add.existing(this);
+
         scene.characters.add(this);
+
+        this.addHitBox();
+        this.addColliders();
+
+        this.body.setCollideWorldBounds(true);
+    }
+
+    addColliders() {
+        let otherCharacters = this.scene.characters.getChildren().filter((obj: Character) => obj.id != this.id);
+
+        otherCharacters.forEach((obj: Character) => {
+            this.scene.physics.add.collider(this, obj, this.standBy, undefined, this)
+        })
+    }
+
+    addHitBox() {
+        let rectangle = this.scene.add.rectangle(0, 0, this.width, this.height);
+        rectangle.setStrokeStyle(2, 0x1a65ac);
+
+        this.add(rectangle);
     }
 
     addAnimations(animations) {
@@ -95,74 +121,66 @@ export default class Character extends GameObject {
 
         this.scene.anims.create({
             key: `${this.name}_facing_${UP}`,
-            frames: [ { key: animations.key, frame: animations.facing.up } ],
+            frames: [{ key: animations.key, frame: animations.facing.up }],
             frameRate: 20,
         });
         this.scene.anims.create({
             key: `${this.name}_facing_${RIGHT}`,
-            frames: [ { key: animations.key, frame: animations.facing.right } ],
+            frames: [{ key: animations.key, frame: animations.facing.right }],
             frameRate: 20,
         });
         this.scene.anims.create({
             key: `${this.name}_facing_${DOWN}`,
-            frames: [ { key: animations.key, frame: animations.facing.down } ],
+            frames: [{ key: animations.key, frame: animations.facing.down }],
             frameRate: 20,
         });
         this.scene.anims.create({
             key: `${this.name}_facing_${LEFT}`,
-            frames: [ { key: animations.key, frame: animations.facing.left } ],
+            frames: [{ key: animations.key, frame: animations.facing.left }],
             frameRate: 20,
         });
     }
 
-    move(direction: Direction) {
-        let newPositionX = this.entityPosition.x,
-            newPositionY = this.entityPosition.y,
+    move(directions: Directions) {
+        let velocityX = 0, velocityY = 0,
             isColliding = false,
-            otherChildren = this.scene.characters.getChildren().filter((obj : Character) => obj.id != this.id);
-        switch (direction) {
-            case UP:
-                newPositionY = this.entityPosition.y - .01 * this.speed;
-                break;
-            case RIGHT:
-                newPositionX = this.entityPosition.x + .01 * this.speed;
-                break;
-            case DOWN:
-                newPositionY = this.entityPosition.y + .01 * this.speed;
-                break;
-            case LEFT:
-                newPositionX = this.entityPosition.x - .01 * this.speed;
-                break;
-        }
+            otherChildren = this.scene.characters.getChildren().filter((obj: Character) => obj.id != this.id);
 
-        // collision check
-        otherChildren.forEach((obj : Character) => {
-            let isCollidingX, isCollidingY;
-
-            if(obj.entityPosition.x - obj.hitBox.height / 2 <= newPositionX &&
-                obj.entityPosition.x + obj.hitBox.height / 2 >= newPositionX) {
-                isCollidingX = true;
+        directions.forEach(direction => {
+            switch (direction) {
+                case UP:
+                    velocityY = -this.speed;
+                    break;
+                case RIGHT:
+                    velocityX = this.speed;
+                    break;
+                case DOWN:
+                    velocityY = this.speed;
+                    break;
+                case LEFT:
+                    velocityX = -this.speed
+                    break;
             }
-
-            if(obj.entityPosition.y - obj.hitBox.width / 2 <= newPositionY &&
-                obj.entityPosition.y + obj.hitBox.width / 2 >= newPositionY) {
-                isCollidingY = true;
-            }
-
-            isColliding = isColliding || (isCollidingX && isCollidingY);
         })
 
-        if(!isColliding) {
-            this.entityPosition.x = newPositionX;
-            this.entityPosition.y = newPositionY;
-        }
+        this.body.setVelocity(velocityX, velocityY)
 
-        this.facing = direction;
-        Phaser.Actions.ShiftPosition(this.group.getChildren(), this.entityPosition.x, this.entityPosition.y);
-        this.characterSprite.anims.play(`${this.name}_walking_${direction}`, true);
+        this.facing = directions[directions.length - 1];
+        this.characterSprite.anims.play(`${this.name}_walking_${directions[directions.length - 1]}`, true);
     }
 
     standBy() {
+        this.body.setVelocity(0);
         this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
+
+        return true;
+    }
+
+    getHealth() {
+        return 100;
+    }
+
+    getMaxHealth() {
+        return 100;
     }
 }
