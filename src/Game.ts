@@ -1,12 +1,9 @@
 import 'phaser';
-import Hero from "./Hero";
-import RandomDataGenerator = Phaser.Math.RandomDataGenerator;
-import Character, { Directions, DOWN, LEFT, RIGHT, UP } from "./Character";
-import Enemy from "./Enemy";
+import Hero from "./Character/Hero";
+import { Directions, DOWN, LEFT, RIGHT, UP } from "./Character/Character";
 import Group = Phaser.GameObjects.Group;
 import Layer = Phaser.GameObjects.Layer;
-import Ghost from "./Enemies/Ghost";
-import Container = Phaser.GameObjects.Container;
+import Ghost from "./Character/Enemies/Ghost";
 
 const GAME_WIDTH = Math.trunc(window.document.documentElement.clientWidth / 16) * 16;
 const GAME_HEIGHT = Math.trunc(window.document.documentElement.clientHeight / 16) * 16;
@@ -49,9 +46,10 @@ export default class Game extends Phaser.Scene {
 
         this.characters = this.add.group();
         this.enemies = this.add.group();
-        this.enemies.runChildUpdate = true;
 
-        new Ghost(this, GAME_WIDTH / 3, GAME_HEIGHT / 2);
+        this.characters.runChildUpdate = true;
+
+        new Ghost(this, GAME_WIDTH / 3, GAME_HEIGHT / 3);
         this.hero = new Hero(this, GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
         this.physics.world.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT, true, true, true, true)
@@ -91,8 +89,6 @@ export default class Game extends Phaser.Scene {
         } else {
             this.hero.move(directions);
         }
-
-        this.enemies.preUpdate(time, delta);
     }
 }
 
@@ -102,7 +98,10 @@ const config = {
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     physics: {
-        default: 'arcade'
+        default: 'arcade',
+        arcade: {
+            debug: true
+        }
     },
     scene: Game
 };
