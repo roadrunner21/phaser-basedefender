@@ -13,11 +13,23 @@ import Hero from "./Hero";
 import Graphics = Phaser.GameObjects.Graphics;
 
 export const UP = 'UP';
+export const UP_RIGHT = 'UP_RIGHT';
 export const RIGHT = 'RIGHT';
+export const DOWN_RIGHT = 'DOWN_RIGHT';
 export const DOWN = 'DOWN';
+export const DOWN_LEFT = 'DOWN_LEFT';
 export const LEFT = 'LEFT';
+export const UP_LEFT = 'UP_LEFT';
 
-export type Direction = typeof UP | typeof RIGHT | typeof DOWN | typeof LEFT
+export type Direction =
+    typeof UP
+    | typeof UP_RIGHT
+    | typeof RIGHT
+    | typeof DOWN_RIGHT
+    | typeof DOWN
+    | typeof DOWN_LEFT
+    | typeof LEFT
+    | typeof UP_LEFT
 
 export type Directions = Array<Direction>;
 
@@ -48,12 +60,12 @@ export default class Character extends Container {
     spriteScale = 2;
     facing: Direction = DOWN;
     characterSprite: Sprite = null;
-    hitBox = { height: 0, width: 0 };
     healthBar: HealthBar;
     body: Body;
-    private _targets : Character[];
+    direction: Direction;
+    private _targets: Character[];
     private _weapon: Weapon;
-    private _skills: Skills = new Skills(1,1);
+    private _skills: Skills = new Skills(1, 1);
 
     constructor(scene: Game, x, y, name: string, animations: CharacterAnimationConfig) {
         super(scene, x, y);
@@ -64,16 +76,13 @@ export default class Character extends Container {
         this.characterSprite = this.scene.physics.add.sprite(0, 0, animations.key, animations.facing.down)
         this.characterSprite.scale = this.spriteScale;
 
-        this.hitBox.height = this.characterSprite.height * this.spriteScale;
-        this.hitBox.width = this.characterSprite.width * this.spriteScale;
-
         this.healthBar = new HealthBar(this.scene, -10, -16, this.skills.hitPoints, this.skills.currentHitPoints);
 
         this._weapon = new Fist(this.scene);
         this.addAnimations(animations);
 
         this.add([this.characterSprite, this.healthBar]);
-        this.setSize(this.hitBox.width, this.hitBox.height);
+        this.setSize(this.characterSprite.width * this.spriteScale, this.characterSprite.height * this.spriteScale);
 
         this.scene.physics.world.enableBody(this, DYNAMIC_BODY);
         this.scene.add.existing(this);
@@ -81,7 +90,7 @@ export default class Character extends Container {
         scene.characters.add(this);
 
         this.addColliders();
-        this.body.friction = new Vector2(0,0)
+        this.body.friction = new Vector2(0, 0)
 
         this.body.setCollideWorldBounds(true);
     }
@@ -108,8 +117,20 @@ export default class Character extends Container {
             repeat: -1,
         });
         this.scene.anims.create({
+            key: `${this.name}_walking_${UP_RIGHT}`,
+            frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.up_right),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.scene.anims.create({
             key: `${this.name}_walking_${RIGHT}`,
             frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.right),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.scene.anims.create({
+            key: `${this.name}_walking_${DOWN_RIGHT}`,
+            frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.down_right),
             frameRate: 10,
             repeat: -1,
         });
@@ -120,8 +141,20 @@ export default class Character extends Container {
             repeat: -1,
         });
         this.scene.anims.create({
+            key: `${this.name}_walking_${DOWN_LEFT}`,
+            frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.down_left),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.scene.anims.create({
             key: `${this.name}_walking_${LEFT}`,
             frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.left),
+            frameRate: 10,
+            repeat: -1,
+        });
+        this.scene.anims.create({
+            key: `${this.name}_walking_${UP_LEFT}`,
+            frames: this.scene.anims.generateFrameNumbers(animations.key, animations.walking.up_left),
             frameRate: 10,
             repeat: -1,
         });
@@ -132,8 +165,18 @@ export default class Character extends Container {
             frameRate: 20,
         });
         this.scene.anims.create({
+            key: `${this.name}_facing_${UP_RIGHT}`,
+            frames: [{ key: animations.key, frame: animations.facing.up_right }],
+            frameRate: 20,
+        });
+        this.scene.anims.create({
             key: `${this.name}_facing_${RIGHT}`,
             frames: [{ key: animations.key, frame: animations.facing.right }],
+            frameRate: 20,
+        });
+        this.scene.anims.create({
+            key: `${this.name}_facing_${DOWN_RIGHT}`,
+            frames: [{ key: animations.key, frame: animations.facing.down_right }],
             frameRate: 20,
         });
         this.scene.anims.create({
@@ -142,43 +185,69 @@ export default class Character extends Container {
             frameRate: 20,
         });
         this.scene.anims.create({
+            key: `${this.name}_facing_${DOWN_LEFT}`,
+            frames: [{ key: animations.key, frame: animations.facing.down_left }],
+            frameRate: 20,
+        });
+        this.scene.anims.create({
             key: `${this.name}_facing_${LEFT}`,
             frames: [{ key: animations.key, frame: animations.facing.left }],
             frameRate: 20,
         });
+        this.scene.anims.create({
+            key: `${this.name}_facing_${UP_LEFT}`,
+            frames: [{ key: animations.key, frame: animations.facing.up_left }],
+            frameRate: 20,
+        });
     }
 
-    move(directions: Directions) {
-        let velocityX = 0, velocityY = 0,
-            isColliding = false,
-            otherChildren = this.scene.characters.getChildren().filter((obj: Character) => obj.id != this.id);
+    move(direction: Direction) {
+        let velocityX = 0, velocityY = 0;
 
-        directions.forEach(direction => {
-            switch (direction) {
-                case UP:
-                    velocityY = -this.speed;
-                    break;
-                case RIGHT:
-                    velocityX = this.speed;
-                    break;
-                case DOWN:
-                    velocityY = this.speed;
-                    break;
-                case LEFT:
-                    velocityX = -this.speed
-                    break;
-            }
-        })
+        switch (direction) {
+            case UP:
+                velocityY = -this.speed;
+                break;
+            case UP_RIGHT:
+                velocityX = this.speed;
+                velocityY = -this.speed;
+                break;
+            case RIGHT:
+                velocityX = this.speed;
+                break;
+            case DOWN_RIGHT:
+                velocityX = this.speed;
+                velocityY = this.speed;
+                break;
+            case DOWN:
+                velocityY = this.speed;
+                break;
+            case DOWN_LEFT:
+                velocityX = -this.speed;
+                velocityY = this.speed;
+                break;
+            case LEFT:
+                velocityX = -this.speed;
+                break;
+            case UP_LEFT:
+                velocityX = -this.speed;
+                velocityY = -this.speed;
+                break;
+        }
 
         this.body.setVelocity(velocityX, velocityY)
+        this.direction = direction;
+    }
 
-        this.facing = directions[directions.length - 1];
-        this.characterSprite.anims.play(`${this.name}_walking_${directions[directions.length - 1]}`, true);
+    update(time, delta) {
+
+        this.facing = this.direction;
+        this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
     }
 
     standBy() {
         this.body.setVelocity(0);
-        this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
+        // this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
     }
 
     get skills(): Skills {

@@ -6,15 +6,23 @@ let animations = {
     key: 'characters',
     walking: {
         up: { start: 36, end: 38 },
+        up_right: { start: 24, end: 26 },
         right: { start: 24, end: 26 },
+        down_right: { start: 24, end: 26 },
         down: { start: 0, end: 2 },
+        down_left: { start: 12, end: 14 },
         left: { start: 12, end: 14 },
+        up_left: { start: 12, end: 14 },
     },
     facing: {
         up: 37,
+        up_right: 25,
         right: 25,
+        down_right: 25,
         down: 1,
+        down_left: 13,
         left: 13,
+        up_left: 13,
     }
 };
 
@@ -30,6 +38,7 @@ export default class Hero extends Character {
     }
 
     update(time, delta) {
+        super.update(time, delta);
         this.getEnemiesInRadius();
         this.targets = this.findTargets();
     }

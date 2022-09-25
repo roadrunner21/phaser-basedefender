@@ -1,6 +1,17 @@
 import 'phaser';
 import Hero from "./Character/Hero";
-import { Directions, DOWN, LEFT, RIGHT, UP } from "./Character/Character";
+import {
+    Direction,
+    Directions,
+    DOWN,
+    DOWN_LEFT,
+    DOWN_RIGHT,
+    LEFT,
+    RIGHT,
+    UP,
+    UP_LEFT,
+    UP_RIGHT
+} from "./Character/Character";
 import Group = Phaser.GameObjects.Group;
 import Layer = Phaser.GameObjects.Layer;
 import Ghost from "./Character/Enemies/Ghost";
@@ -70,24 +81,30 @@ export default class Game extends Phaser.Scene {
         const keyRight = cursors.right.isDown;
         const keyDown = cursors.down.isDown;
         const keyLeft = cursors.left.isDown;
-        let directions: Directions = [];
+        let direction: Direction;
 
-        if (keyUp) {
-            directions.push(UP);
+        if(keyUp && keyRight) {
+            direction = UP_RIGHT;
+        } else if (keyRight && keyDown) {
+            direction = DOWN_RIGHT;
+        } else if (keyDown && keyLeft) {
+            direction = DOWN_LEFT;
+        } else if (keyLeft && keyUp) {
+            direction = UP_LEFT;
+        } else if (keyUp) {
+            direction = UP;
+        } else if (keyRight) {
+            direction = RIGHT;
+        } else if (keyDown) {
+            direction = DOWN;
+        } else if (keyLeft) {
+            direction = LEFT;
         }
-        if (keyRight) {
-            directions.push(RIGHT);
-        }
-        if (keyDown) {
-            directions.push(DOWN);
-        }
-        if (keyLeft) {
-            directions.push(LEFT);
-        }
+
         if (!keyUp && !keyRight && !keyDown && !keyLeft) {
             this.hero.standBy();
         } else {
-            this.hero.move(directions);
+            this.hero.move(direction);
         }
     }
 }
