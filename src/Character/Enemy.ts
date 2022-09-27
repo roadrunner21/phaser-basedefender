@@ -2,6 +2,7 @@ import Character, {
     CharacterAnimationConfig, Direction, DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT,
 } from "./Character";
 import Game from "../Game";
+import Hero from "./Hero";
 
 export default class Enemy extends Character {
     constructor(scene: Game, x, y, name, animations : CharacterAnimationConfig) {
@@ -11,14 +12,36 @@ export default class Enemy extends Character {
     }
 
     update(time, delta) {
-        this.direction = this.getDirection();
-        this.facing = this.getDirection();
+        let minDistance = (this.scene.hero.width * this.scene.hero.scale / 2) + this.weapon.radius - 1;
+
         super.update(time, delta);
-        this.scene.physics.moveToObject(this, this.scene.hero);
+
+        let isHeroInRange = this.isHeroInRange();
+        console.log(isHeroInRange);
+
+        if(Phaser.Math.Distance.BetweenPoints(this, this.scene.hero) > minDistance) {
+            this.direction = this.getDirection();
+            this.facing = this.getDirection();
+            this.scene.physics.moveToObject(this, this.scene.hero);
+        } else {
+            this.standBy();
+        }
+    }
+
+    isHeroInRange() {
+        let isHeroInRange = false;
+
+        this.scene.physics.overlapCirc(this.body.x, this.body.y, this.radius).forEach(body => {
+            if (body.gameObject instanceof Hero) {
+                isHeroInRange = true;
+            }
+        })
+
+        return isHeroInRange;
     }
 
     getDirection() : Direction {
-        let direction : Direction,
+        let direction : Direction = DOWN,
             {x, y} = this.body.velocity
 
         if(x > 0) {

@@ -54,6 +54,7 @@ export type CharacterAnimationConfig = {
 }
 
 export default class Character extends Container {
+
     id: number = Math.round(Math.random() * 1000000000000000);
     scene: Game = null;
     speed = 100;
@@ -63,6 +64,7 @@ export default class Character extends Container {
     healthBar: HealthBar;
     body: Body;
     direction: Direction;
+    private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
     private _skills: Skills = new Skills(1, 1);
@@ -104,7 +106,7 @@ export default class Character extends Container {
     }
 
     showRadius() {
-        let circle = this.scene.add.circle(0, 0, this.weapon.radius);
+        let circle = this.scene.add.circle(0, 0, this.radius);
         circle.setFillStyle(0x1a65ac, 0.8);
         this.addAt(circle, 0);
     }
@@ -201,53 +203,14 @@ export default class Character extends Container {
         });
     }
 
-    move(direction: Direction) {
-        let velocityX = 0, velocityY = 0;
-
-        switch (direction) {
-            case UP:
-                velocityY = -this.speed;
-                break;
-            case UP_RIGHT:
-                velocityX = this.speed;
-                velocityY = -this.speed;
-                break;
-            case RIGHT:
-                velocityX = this.speed;
-                break;
-            case DOWN_RIGHT:
-                velocityX = this.speed;
-                velocityY = this.speed;
-                break;
-            case DOWN:
-                velocityY = this.speed;
-                break;
-            case DOWN_LEFT:
-                velocityX = -this.speed;
-                velocityY = this.speed;
-                break;
-            case LEFT:
-                velocityX = -this.speed;
-                break;
-            case UP_LEFT:
-                velocityX = -this.speed;
-                velocityY = -this.speed;
-                break;
-        }
-
-        this.body.setVelocity(velocityX, velocityY)
-        this.direction = direction;
-    }
-
     update(time, delta) {
-
         this.facing = this.direction;
         this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
     }
 
     standBy() {
         this.body.setVelocity(0);
-        // this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
+        this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
     }
 
     get skills(): Skills {
@@ -272,5 +235,9 @@ export default class Character extends Container {
 
     set targets(characters: Character[]) {
         this._targets = characters;
+    }
+
+    get radius(): number {
+        return this.weapon.radius + (this.width * this.scale / 2);
     }
 }

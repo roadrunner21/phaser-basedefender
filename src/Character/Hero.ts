@@ -1,5 +1,5 @@
 import Game from "../Game";
-import Character from "./Character";
+import Character, { Direction, DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from "./Character";
 import Enemy from "./Enemy";
 
 let animations = {
@@ -31,6 +31,7 @@ export default class Hero extends Character {
     constructor(scene: Game, x, y) {
         super(scene, x, y, 'hero', animations);
 
+        this.direction = 'DOWN';
         this.setDepth(100);
         this.body.setImmovable(true);
 
@@ -41,6 +42,44 @@ export default class Hero extends Character {
         super.update(time, delta);
         this.getEnemiesInRadius();
         this.targets = this.findTargets();
+    }
+
+    move(direction: Direction) {
+        let velocityX = 0, velocityY = 0;
+
+        switch (direction) {
+            case UP:
+                velocityY = -this.speed;
+                break;
+            case UP_RIGHT:
+                velocityX = this.speed;
+                velocityY = -this.speed;
+                break;
+            case RIGHT:
+                velocityX = this.speed;
+                break;
+            case DOWN_RIGHT:
+                velocityX = this.speed;
+                velocityY = this.speed;
+                break;
+            case DOWN:
+                velocityY = this.speed;
+                break;
+            case DOWN_LEFT:
+                velocityX = -this.speed;
+                velocityY = this.speed;
+                break;
+            case LEFT:
+                velocityX = -this.speed;
+                break;
+            case UP_LEFT:
+                velocityX = -this.speed;
+                velocityY = -this.speed;
+                break;
+        }
+
+        this.body.setVelocity(velocityX, velocityY)
+        this.direction = direction;
     }
 
     findTargets(): Enemy[] {
@@ -63,7 +102,7 @@ export default class Hero extends Character {
     getEnemiesInRadius(): Enemy[] {
         let enemies = []
 
-        this.scene.physics.overlapCirc(this.body.x, this.body.y, this.weapon.radius).forEach(body => {
+        this.scene.physics.overlapCirc(this.body.x, this.body.y, this.radius).forEach(body => {
             if (body.gameObject instanceof Enemy) {
                 enemies.push(body.gameObject);
             }
