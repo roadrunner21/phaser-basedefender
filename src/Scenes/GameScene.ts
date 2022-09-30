@@ -1,30 +1,25 @@
 import 'phaser';
-import Hero from "./Character/Hero";
+import Hero from "../Character/Hero";
 import {
     Direction,
     Directions,
-    DOWN,
-    DOWN_LEFT,
-    DOWN_RIGHT,
-    LEFT,
-    RIGHT,
-    UP,
-    UP_LEFT,
-    UP_RIGHT
-} from "./Character/Character";
+} from "../Character/Character";
+import { DOWN, DOWN_LEFT, DOWN_RIGHT, GAME_HEIGHT, GAME_WIDTH, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from "../const"
 import Group = Phaser.GameObjects.Group;
 import Layer = Phaser.GameObjects.Layer;
-import Ghost from "./Character/Enemies/Ghost";
-
-const GAME_WIDTH = Math.trunc(window.document.documentElement.clientWidth / 16) * 16;
-const GAME_HEIGHT = Math.trunc(window.document.documentElement.clientHeight / 16) * 16;
+import Ghost from "../Character/Enemies/Ghost";
 
 let cursors;
 
-export default class Game extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
     hero: Hero;
     enemies: Group;
     characters: Group;
+
+    constructor() {
+        super('gameScene');
+    }
+
 
     preload() {
         this.load.spritesheet('basictiles', 'assets/basictiles.png', { frameWidth: 16, frameHeight: 16 });
@@ -71,9 +66,10 @@ export default class Game extends Phaser.Scene {
                 up: Phaser.Input.Keyboard.KeyCodes.W,
                 down: Phaser.Input.Keyboard.KeyCodes.S,
                 left: Phaser.Input.Keyboard.KeyCodes.A,
-                right: Phaser.Input.Keyboard.KeyCodes.D
+                right: Phaser.Input.Keyboard.KeyCodes.D,
             });
 
+        this.input.keyboard.addKey('ESC').on('up', this.openMenu.bind(this));
     }
 
     update(time, delta) {
@@ -82,6 +78,10 @@ export default class Game extends Phaser.Scene {
         const keyDown = cursors.down.isDown;
         const keyLeft = cursors.left.isDown;
         let direction: Direction;
+        //
+        // if (keyEsc) {
+        //     this.scene.launch('menuScene')
+        // }
 
         if(keyUp && keyRight) {
             direction = UP_RIGHT;
@@ -107,20 +107,9 @@ export default class Game extends Phaser.Scene {
             this.hero.move(direction);
         }
     }
+
+    openMenu() {
+        this.scene.pause();
+        this.scene.launch('menuScene');
+    }
 }
-
-const config = {
-    type: Phaser.AUTO,
-    backgroundColor: '#6DAA2B',
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            debug: true
-        }
-    },
-    scene: Game
-};
-
-const game = new Phaser.Game(config);

@@ -1,5 +1,5 @@
 import 'phaser';
-import Game from "../Game";
+import GameScene from "../Scenes/GameScene";
 import HealthBar from "./Interface/HealthBar";
 import Container = Phaser.GameObjects.Container;
 import Sprite = Phaser.Physics.Arcade.Sprite;
@@ -9,17 +9,7 @@ import Vector2 = Phaser.Math.Vector2;
 import Skills from "../Skills/Skills";
 import Weapon from "../Item/Weapon/Weapon";
 import Fist from "../Item/Weapon/Fist";
-import Hero from "./Hero";
-import Graphics = Phaser.GameObjects.Graphics;
-
-export const UP = 'UP';
-export const UP_RIGHT = 'UP_RIGHT';
-export const RIGHT = 'RIGHT';
-export const DOWN_RIGHT = 'DOWN_RIGHT';
-export const DOWN = 'DOWN';
-export const DOWN_LEFT = 'DOWN_LEFT';
-export const LEFT = 'LEFT';
-export const UP_LEFT = 'UP_LEFT';
+import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from '../const';
 
 export type Direction =
     typeof UP
@@ -56,20 +46,20 @@ export type CharacterAnimationConfig = {
 export default class Character extends Container {
 
     id: number = Math.round(Math.random() * 1000000000000000);
-    scene: Game = null;
+    scene: GameScene = null;
     speed = 100;
     spriteScale = 2;
     facing: Direction = DOWN;
     characterSprite: Sprite = null;
     healthBar: HealthBar;
     body: Body;
-    direction: Direction;
+    direction: Direction = DOWN;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
     private _skills: Skills = new Skills(1, 1);
 
-    constructor(scene: Game, x, y, name: string, animations: CharacterAnimationConfig) {
+    constructor(scene: GameScene, x, y, name: string, animations: CharacterAnimationConfig) {
         super(scene, x, y);
 
         this.scene = scene;

@@ -1,4 +1,4 @@
-import Game from "../../Game";
+import GameScene from "../../Scenes/GameScene";
 import Item from "../Item";
 
 export default class Weapon extends Item {
@@ -7,7 +7,7 @@ export default class Weapon extends Item {
     speed: number;
     aoe: boolean;
 
-    constructor(scene: Game) {
+    constructor(scene: GameScene) {
         super(scene);
     }
 }

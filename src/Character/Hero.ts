@@ -1,5 +1,6 @@
-import Game from "../Game";
-import Character, { Direction, DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from "./Character";
+import GameScene from "../Scenes/GameScene";
+import Character, { Direction } from "./Character";
+import {DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT} from "../const"
 import Enemy from "./Enemy";
 
 let animations = {
@@ -28,7 +29,7 @@ let animations = {
 
 export default class Hero extends Character {
 
-    constructor(scene: Game, x, y) {
+    constructor(scene: GameScene, x, y) {
         super(scene, x, y, 'hero', animations);
 
         this.direction = 'DOWN';
