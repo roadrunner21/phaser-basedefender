@@ -35,8 +35,6 @@ export default class Hero extends Character {
         this.direction = 'DOWN';
         this.setDepth(100);
         this.body.setImmovable(true);
-
-        this.showRadius();
     }
 
     update(time, delta) {

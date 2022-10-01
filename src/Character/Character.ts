@@ -10,6 +10,7 @@ import Skills from "../Skills/Skills";
 import Weapon from "../Item/Weapon/Weapon";
 import Fist from "../Item/Weapon/Fist";
 import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from '../const';
+import AttackAngle from "./Interface/AttackAngle";
 
 export type Direction =
     typeof UP
@@ -54,6 +55,7 @@ export default class Character extends Container {
     healthBar: HealthBar;
     body: Body;
     direction: Direction = DOWN;
+    attackAngle: AttackAngle;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -85,6 +87,9 @@ export default class Character extends Container {
         this.body.friction = new Vector2(0, 0)
 
         this.body.setCollideWorldBounds(true);
+
+        this.attackAngle = new AttackAngle(this.scene, this.radius, this.body.angle, this.weapon.attackAngle);
+        this.addAt(this.attackAngle, 0);
     }
 
     addColliders() {
@@ -194,8 +199,11 @@ export default class Character extends Container {
     }
 
     update(time, delta) {
+        // console.log(this.body);
         this.facing = this.direction;
         this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
+
+        this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
     }
 
     standBy() {
