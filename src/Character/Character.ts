@@ -56,6 +56,7 @@ export default class Character extends Container {
     body: Body;
     direction: Direction = DOWN;
     attackAngle: AttackAngle;
+    isMoving : boolean = false;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -198,17 +199,46 @@ export default class Character extends Container {
         });
     }
 
+    getDirection(): Direction {
+        let direction: Direction = DOWN,
+            angleDeg = Phaser.Math.RadToDeg(this.body.angle) + 180;
+
+        if (angleDeg.between(157.5, 202.5)) {
+            direction = RIGHT;
+        } else if (angleDeg.between(202.5, 247.5)) {
+            direction = DOWN_RIGHT;
+        } else if (angleDeg.between(247.5, 292.5)) {
+            direction = DOWN;
+        } else if (angleDeg.between(292.5, 337.5)) {
+            direction = DOWN_LEFT;
+        } else if (angleDeg.between(337.5, 380) || angleDeg.between(0, 22.5)) {
+            direction = LEFT;
+        } else if (angleDeg.between(22.5, 67.5)) {
+            direction = UP_LEFT;
+        } else if (angleDeg.between(67.5, 112.5)) {
+            direction = UP;
+        } else if (angleDeg.between(112.5, 157.5)) {
+            direction = UP_RIGHT;
+        }
+
+        return direction;
+    }
+
     update(time, delta) {
         // console.log(this.body);
-        this.facing = this.direction;
-        this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
+        if(this.isMoving) {
+            this.direction = this.getDirection();
+            this.facing = this.direction;
+            this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
+            this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
+        }
 
-        this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
     }
 
     standBy() {
         this.body.setVelocity(0);
-        this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`)
+        this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`);
+        this.isMoving = false;
     }
 
     get skills(): Skills {

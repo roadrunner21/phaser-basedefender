@@ -77,8 +77,8 @@ export default class Hero extends Character {
                 break;
         }
 
-        this.body.setVelocity(velocityX, velocityY)
-        this.direction = direction;
+        this.isMoving = true;
+        this.body.setVelocity(velocityX, velocityY);
     }
 
     findTargets(): Enemy[] {

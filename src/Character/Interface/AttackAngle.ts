@@ -25,22 +25,7 @@ export default class AttackAngle extends Graphics {
         startAngle = angle - attackAngle/2;
         endAngle = angle + attackAngle/2;
 
-        // this.fillStyle(0x6666ff);
-        // this.fillTriangle(0, 0,
-        //     radius * Math.cos(angle), radius * Math.sin(angle),
-        //     radius * Math.sin(angle), radius * -Math.cos(angle))
-
-
         this.fillStyle(0x6666ff, 0.5);
-
-        // this.beginPath();
-        // this.moveTo(0, 0);
-        // this.arc(radius * Math.cos(angle), radius * Math.sin(angle), radius,
-        //     Phaser.Math.DegToRad(0), Phaser.Math.DegToRad(45));
-        // this.closePath();
-
-
-
         this.beginPath();
         this.moveTo(0, 0);
         this.arc(0, 0, radius,
