@@ -30,38 +30,48 @@ export default class AttackAngle extends Graphics {
     }
 
     draw(radius, angle, attackAngle) {
+        let angles = [], polygonPoints;
         this.clear();
 
-        let startAngle, endAngle, centerAngle, angle2, angle3;
+        angles = [
+            angle - attackAngle / 2,
+            angle - attackAngle / 2.1,
+            angle - attackAngle / 2.5,
+            angle - attackAngle / 3,
+            angle - attackAngle / 4,
+            angle - attackAngle / 8,
+            angle - attackAngle / 16,
+            angle + attackAngle / 16,
+            angle + attackAngle / 8,
+            angle + attackAngle / 4,
+            angle + attackAngle / 3,
+            angle + attackAngle / 2.5,
+            angle + attackAngle / 2.1,
+            angle + attackAngle / 2,
+        ]
 
-        startAngle = angle - attackAngle / 2;
-        angle2 = angle - attackAngle / 4;
-        angle3 = angle + attackAngle / 4;
-        endAngle = angle + attackAngle / 2;
+        polygonPoints = angles.map((angle) => {
+            return new Point(radius * Math.cos(angle), radius * Math.sin(angle))
+        })
 
         this.fillStyle(0x6666ff, 0.5);
         this.beginPath();
         this.moveTo(0, 0);
         this.arc(0, 0, radius,
-            startAngle, endAngle);
+            angle - attackAngle / 2, angle + attackAngle / 2);
         this.closePath();
         this.fillPath();
 
         this.polygon = new Polygon([
-            0, 0,
-            radius * Math.cos(startAngle), radius * Math.sin(startAngle),
-            radius * Math.cos(angle2), radius * Math.sin(angle2),
-            radius * Math.cos(angle), radius * Math.sin(angle),
-            radius * Math.cos(angle3), radius * Math.sin(angle3),
-            radius * Math.cos(endAngle), radius * Math.sin(endAngle)
+            new Point(0,0),
+            ...polygonPoints
         ])
 
-        this.lineStyle(2, 0x66FFFF);
+        this.lineStyle(2, 0x66FFFF, 0.5);
         this.beginPath();
         this.moveTo(this.polygon.points[0].x, this.polygon.points[0].y);
 
-        for (let i = 1; i < this.polygon.points.length; i++)
-        {
+        for (let i = 1; i < this.polygon.points.length; i++) {
             this.lineTo(this.polygon.points[i].x, this.polygon.points[i].y);
         }
 
@@ -78,11 +88,11 @@ export default class AttackAngle extends Graphics {
             }
         })
 
-        enemiesInCircle.forEach((enemy : Enemy) => {
-            let rect : Rectangle;
+        enemiesInCircle.forEach((enemy: Enemy) => {
+            let rect: Rectangle;
             rect = new Rectangle(enemy.body.x - (enemy.body.width / 2), enemy.body.y - (enemy.body.height / 2), enemy.body.width, enemy.body.height)
-            Polygon.GetPoints(this.polygon, 100).every((point : Phaser.Geom.Point) => {
-                if(rect.contains(body.x + point.x, body.y + point.y)) {
+            Polygon.GetPoints(this.polygon, 100).every((point: Phaser.Geom.Point) => {
+                if (rect.contains(body.x + point.x, body.y + point.y)) {
                     enemies.push(enemy);
                     return false;
                 }
@@ -90,39 +100,6 @@ export default class AttackAngle extends Graphics {
             })
 
         })
-
-
-        //
-        // enemies.forEach(enemy => {
-        //     Line.BresenhamPoints(this.line1).forEach((point, i) => {
-        //         if (i > this.body.width) {
-        //             if (Phaser.Math.Distance.Between(this.body.x + point.x, this.body.y + point.y, enemy.body.x, enemy.body.y) <
-        //                 Phaser.Math.Distance.Between(
-        //                     this.body.x + point.x,
-        //                     this.body.y + point.y,
-        //                     this.body.x + (i * Math.cos(this.angle)),
-        //                     this.body.y + (i * Math.sin(this.angle)))) {
-        //                 console.log(true);
-        //             }
-        //
-        //         }
-        //     });
-
-            // let point = Line.BresenhamPoints(this.line1)[this.body.width + 1]
-            // console.log(point);
-            // console.log(Phaser.Math.Distance.Between(this.body.x + point.x, this.body.y + point.y, enemy.body.x, enemy.body.y) < i);
-        // })
-
-        // this.fillTriangle(0, 0,
-        //     radius * Math.cos(angle), radius * Math.sin(angle),
-        //     radius * Math.sin(angle), radius * -Math.cos(angle))
-
-        // this.scene.physics.overlapRect(this.body.x, this.body.y, this.radius).forEach(body => {
-        //     if (body.gameObject instanceof Enemy) {
-        //         enemies.push(body.gameObject);
-        //     }
-        // })
-
         return enemies;
     }
 }
