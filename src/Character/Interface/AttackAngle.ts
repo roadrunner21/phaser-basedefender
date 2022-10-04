@@ -54,13 +54,13 @@ export default class AttackAngle extends Graphics {
             return new Point(radius * Math.cos(angle), radius * Math.sin(angle))
         })
 
-        this.fillStyle(0x6666ff, 0.5);
-        this.beginPath();
-        this.moveTo(0, 0);
-        this.arc(0, 0, radius,
-            angle - attackAngle / 2, angle + attackAngle / 2);
-        this.closePath();
-        this.fillPath();
+        // this.fillStyle(0x6666ff, 0.5);
+        // this.beginPath();
+        // this.moveTo(0, 0);
+        // this.arc(0, 0, radius,
+        //     angle - attackAngle / 2, angle + attackAngle / 2);
+        // this.closePath();
+        // this.fillPath();
 
         this.polygon = new Polygon([
             new Point(0,0),
