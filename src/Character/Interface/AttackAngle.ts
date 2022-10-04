@@ -98,8 +98,8 @@ export default class AttackAngle extends Graphics {
                 }
                 return true;
             })
-
         })
+
         return enemies;
     }
 }

@@ -41,6 +41,16 @@ export default class Hero extends Character {
     update(time, delta) {
         super.update(time, delta);
         this.targets = this.findTargets();
+        if(this.targets.length && this.lastAttack + this.weapon.speed <= time) {
+            this.attack();
+            this.lastAttack = time;
+        }
+    }
+
+    attack() {
+        this.targets.forEach(target => {
+            target.reduceHitPoints(this.attackPower);
+        })
     }
 
     move(direction: Direction) {
@@ -82,14 +92,14 @@ export default class Hero extends Character {
     }
 
     findTargets(): Enemy[] {
-        let targets = [], closest;
+        let targets : Enemy[] = [], enemiesInRadius = this.getEnemiesInRadius(), closest;
 
-        if (this.getEnemiesInRadius().length > 0) {
+        if (enemiesInRadius.length > 0) {
             if (this.weapon.aoe) {
-                targets = this.getEnemiesInRadius();
+                targets = enemiesInRadius;
             } else {
-                closest = this.scene.physics.closest(this.body, this.getEnemiesInRadius());
-                if (closest instanceof Enemy) {
+                closest = this.scene.physics.closest(this.body, enemiesInRadius);
+                if (closest.isEnemy) {
                     targets = [closest];
                 }
             }
@@ -99,11 +109,7 @@ export default class Hero extends Character {
     }
 
     getEnemiesInRadius(): Enemy[] {
-        let enemies = []
-
-        this.attackAngle.overlap(this.body);
-
-        return enemies;
+        return this.attackAngle.overlap(this.body);
     }
 
 }

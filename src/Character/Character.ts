@@ -59,6 +59,8 @@ export default class Character extends Container {
     isMoving : boolean = false;
     isHero = false;
     isEnemy = false;
+    lastAttack: number = 0;
+
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -234,6 +236,7 @@ export default class Character extends Container {
             this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
             this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
         }
+        this.healthBar.setHitPoints(this.hitPoints);
 
     }
 
@@ -269,5 +272,28 @@ export default class Character extends Container {
 
     get radius(): number {
         return this.weapon.radius + (this.width * this.scale / 2);
+    }
+
+    get attackPower(): number {
+        return this.weapon.attack;
+    }
+
+    get hitPoints(): number {
+        return this.skills.currentHitPoints;
+    }
+
+    dies() {
+        this.destroy();
+    }
+
+    reduceHitPoints(reduceBy) {
+        reduceBy = this.hitPoints < reduceBy ? this.hitPoints : reduceBy;
+        this.skills.currentHitPoints -= reduceBy;
+
+        if(this.hitPoints <= 0) {
+            this.dies();
+        }
+
+        return true;
     }
 }
