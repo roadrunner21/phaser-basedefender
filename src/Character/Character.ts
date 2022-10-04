@@ -57,6 +57,8 @@ export default class Character extends Container {
     direction: Direction = DOWN;
     attackAngle: AttackAngle;
     isMoving : boolean = false;
+    isHero = false;
+    isEnemy = false;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -89,7 +91,7 @@ export default class Character extends Container {
 
         this.body.setCollideWorldBounds(true);
 
-        this.attackAngle = new AttackAngle(this.scene, this.radius, this.body.angle, this.weapon.attackAngle);
+        this.attackAngle = new AttackAngle(this.scene, this.radius, this.body.angle, this.weapon.attackAngle, this.body);
         this.addAt(this.attackAngle, 0);
     }
 

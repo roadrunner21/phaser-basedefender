@@ -1,5 +1,4 @@
-import Character, { CharacterAnimationConfig, Direction, } from "./Character";
-import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from "../const"
+import Character, { CharacterAnimationConfig } from "./Character";
 import GameScene from "../Scenes/GameScene";
 import Hero from "./Hero";
 
@@ -8,6 +7,7 @@ export default class Enemy extends Character {
         super(scene, x, y, name, animations);
 
         this.scene.enemies.add(this);
+        this.isEnemy = true;
     }
 
     update(time, delta) {
@@ -30,7 +30,7 @@ export default class Enemy extends Character {
         let isHeroInRange = false;
 
         this.scene.physics.overlapCirc(this.body.x, this.body.y, this.radius).forEach(body => {
-            if (body.gameObject instanceof Hero) {
+            if (body.gameObject.isHero) {
                 isHeroInRange = true;
             }
         })

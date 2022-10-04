@@ -35,11 +35,11 @@ export default class Hero extends Character {
         this.direction = 'DOWN';
         this.setDepth(100);
         this.body.setImmovable(true);
+        this.isHero = true;
     }
 
     update(time, delta) {
         super.update(time, delta);
-        this.getEnemiesInRadius();
         this.targets = this.findTargets();
     }
 
@@ -101,11 +101,8 @@ export default class Hero extends Character {
     getEnemiesInRadius(): Enemy[] {
         let enemies = []
 
-        this.scene.physics.overlapCirc(this.body.x, this.body.y, this.radius).forEach(body => {
-            if (body.gameObject instanceof Enemy) {
-                enemies.push(body.gameObject);
-            }
-        })
+        this.attackAngle.overlap(this.body);
+
         return enemies;
     }
 
