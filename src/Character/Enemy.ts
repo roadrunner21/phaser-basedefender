@@ -13,8 +13,9 @@ export default class Enemy extends Character {
     update(time, delta) {
         let minDistance = (this.scene.hero.width * this.scene.hero.scale / 2) + this.weapon.radius - 1;
 
-        super.update(time, delta);
-
+        if(!super.update(time, delta)) {
+            return false;
+        }
         let isHeroInRange = this.isHeroInRange();
 
         if (Phaser.Math.Distance.BetweenPoints(this, this.scene.hero) > minDistance) {

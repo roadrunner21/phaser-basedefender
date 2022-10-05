@@ -11,6 +11,7 @@ import Weapon from "../Item/Weapon/Weapon";
 import Fist from "../Item/Weapon/Fist";
 import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from '../const';
 import AttackAngle from "./Interface/AttackAngle";
+import HitPointDisplay from "./Interface/HitPointDisplay";
 
 export type Direction =
     typeof UP
@@ -54,12 +55,14 @@ export default class Character extends Container {
     characterSprite: Sprite = null;
     healthBar: HealthBar;
     body: Body;
+    hitPointDisplay : HitPointDisplay;
     direction: Direction = DOWN;
     attackAngle: AttackAngle;
     isMoving : boolean = false;
     isHero = false;
     isEnemy = false;
     lastAttack: number = 0;
+    alive = true;
 
     private _radius: number;
     private _targets: Character[];
@@ -76,11 +79,12 @@ export default class Character extends Container {
         this.characterSprite.scale = this.spriteScale;
 
         this.healthBar = new HealthBar(this.scene, -10, -16, this.skills.hitPoints, this.skills.currentHitPoints);
+        this.hitPointDisplay = new HitPointDisplay(scene);
 
         this._weapon = new Fist(this.scene);
         this.addAnimations(animations);
 
-        this.add([this.characterSprite, this.healthBar]);
+        this.add([this.characterSprite, this.healthBar, this.hitPointDisplay]);
         this.setSize(this.characterSprite.width * this.spriteScale, this.characterSprite.height * this.spriteScale);
 
         this.scene.physics.world.enableBody(this, DYNAMIC_BODY);
@@ -228,8 +232,11 @@ export default class Character extends Container {
         return direction;
     }
 
-    update(time, delta) {
-        // console.log(this.body);
+    update(time, delta): boolean {
+        if(!this.alive) {
+            return false;
+        }
+
         if(this.isMoving) {
             this.direction = this.getDirection();
             this.facing = this.direction;
@@ -237,7 +244,7 @@ export default class Character extends Container {
             this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
         }
         this.healthBar.setHitPoints(this.hitPoints);
-
+        return true;
     }
 
     standBy() {
@@ -283,12 +290,22 @@ export default class Character extends Container {
     }
 
     dies() {
-        this.destroy();
+        this.alive = false;
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 0,
+            paused: false,
+            duration: 1000,
+            onComplete: () => {
+                this.destroy();
+            }
+        })
     }
 
     reduceHitPoints(reduceBy) {
         reduceBy = this.hitPoints < reduceBy ? this.hitPoints : reduceBy;
         this.skills.currentHitPoints -= reduceBy;
+        this.hitPointDisplay.addDamageDisplay(reduceBy);
 
         if(this.hitPoints <= 0) {
             this.dies();

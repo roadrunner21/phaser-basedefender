@@ -39,12 +39,16 @@ export default class Hero extends Character {
     }
 
     update(time, delta) {
-        super.update(time, delta);
+        if(!super.update(time, delta)) {
+            return false;
+        }
         this.targets = this.findTargets();
         if(this.targets.length && this.lastAttack + this.weapon.speed <= time) {
             this.attack();
             this.lastAttack = time;
         }
+
+        return true;
     }
 
     attack() {
