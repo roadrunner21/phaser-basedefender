@@ -1,6 +1,5 @@
 import Container = Phaser.GameObjects.Container;
 import { Scene } from "phaser";
-import Text = Phaser.GameObjects.Text;
 
 export default class HitPointDisplay extends Container {
     scene: Scene;
@@ -12,7 +11,7 @@ export default class HitPointDisplay extends Container {
     }
 
     addDamageDisplay(value: number) {
-        let tween, text = new Text(this.scene, 0, 0, value.toString(), { font: '16px Arial', color: '#FF0000' })
+        let tween, text = new Phaser.GameObjects.Text(this.scene, 0, 0, value.toString(), { font: '16px Arial', color: '#FF0000' })
         text.x -= text.width / 2
         text.y -= text.height / 2
 

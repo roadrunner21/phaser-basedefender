@@ -2,6 +2,7 @@ import GameScene from "../Scenes/GameScene";
 import Character, { Direction } from "./Character";
 import {DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT} from "../const"
 import Enemy from "./Enemy";
+import ExperienceBar from "./Interface/ExperienceBar";
 
 let animations = {
     key: 'characters',
@@ -36,6 +37,16 @@ export default class Hero extends Character {
         this.setDepth(100);
         this.body.setImmovable(true);
         this.isHero = true;
+
+        this.experienceBar = new ExperienceBar(this.scene, this.experience)
+        this.scene.add.existing(this.experienceBar);
+
+        this.on('onLevelUp', () => console.log('level up yay'));
+        this.on('onExperienceChange', () => this.updateExperienceBar())
+    }
+
+    updateExperienceBar() {
+        this.experienceBar.draw(this.experience)
     }
 
     update(time, delta) {
@@ -53,6 +64,7 @@ export default class Hero extends Character {
 
     attack() {
         this.targets.forEach(target => {
+            target.lastAttacker = this;
             target.reduceHitPoints(this.attackPower);
         })
     }

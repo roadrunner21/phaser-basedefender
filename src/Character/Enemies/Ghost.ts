@@ -1,4 +1,5 @@
 import Enemy from "../Enemy";
+import Loot from "../Loot/Loot";
 
 export default class Ghost extends Enemy {
     constructor(scene, x, y) {
@@ -27,5 +28,7 @@ export default class Ghost extends Enemy {
         };
 
         super(scene, x, y, 'ghost', animation);
+
+        this.loot = new Loot(50,1)
     }
 }

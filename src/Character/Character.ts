@@ -12,6 +12,9 @@ import Fist from "../Item/Weapon/Fist";
 import { DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT } from '../const';
 import AttackAngle from "./Interface/AttackAngle";
 import HitPointDisplay from "./Interface/HitPointDisplay";
+import Experience from "./Experience/Experience";
+import ExperienceBar from "./Interface/ExperienceBar";
+import Loot from "./Loot/Loot";
 
 export type Direction =
     typeof UP
@@ -53,7 +56,7 @@ export default class Character extends Container {
     spriteScale = 2;
     facing: Direction = DOWN;
     characterSprite: Sprite = null;
-    healthBar: HealthBar;
+    HealthBar: HealthBar;
     body: Body;
     hitPointDisplay : HitPointDisplay;
     direction: Direction = DOWN;
@@ -63,7 +66,12 @@ export default class Character extends Container {
     isEnemy = false;
     lastAttack: number = 0;
     alive = true;
+    experienceBar: ExperienceBar;
+    loot: Loot;
+    lastAttacker: Character;
+    coins: number = 0;
 
+    private _experience: number = 8;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -78,13 +86,13 @@ export default class Character extends Container {
         this.characterSprite = this.scene.physics.add.sprite(0, 0, animations.key, animations.facing.down)
         this.characterSprite.scale = this.spriteScale;
 
-        this.healthBar = new HealthBar(this.scene, -10, -16, this.skills.hitPoints, this.skills.currentHitPoints);
+        this.HealthBar = new HealthBar(this.scene, -10, -16, this.skills.hitPoints, this.skills.currentHitPoints);
         this.hitPointDisplay = new HitPointDisplay(scene);
 
         this._weapon = new Fist(this.scene);
         this.addAnimations(animations);
 
-        this.add([this.characterSprite, this.healthBar, this.hitPointDisplay]);
+        this.add([this.characterSprite, this.HealthBar, this.hitPointDisplay]);
         this.setSize(this.characterSprite.width * this.spriteScale, this.characterSprite.height * this.spriteScale);
 
         this.scene.physics.world.enableBody(this, DYNAMIC_BODY);
@@ -243,7 +251,7 @@ export default class Character extends Container {
             this.characterSprite.anims.play(`${this.name}_walking_${this.direction}`, true);
             this.attackAngle.draw(this.radius, this.body.angle, this.weapon.attackAngle);
         }
-        this.healthBar.setHitPoints(this.hitPoints);
+        this.HealthBar.setHitPoints(this.hitPoints);
         return true;
     }
 
@@ -251,6 +259,42 @@ export default class Character extends Container {
         this.body.setVelocity(0);
         this.characterSprite.anims.play(`${this.name}_facing_${this.facing}`);
         this.isMoving = false;
+    }
+
+
+    get hitPoints(): number {
+        return this.skills.currentHitPoints;
+    }
+
+    dies() {
+        this.alive = false;
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 0,
+            paused: false,
+            duration: 1000,
+            onComplete: () => {
+                this.destroy();
+            }
+        })
+        this.lastAttacker?.reward(this.loot);
+    }
+
+    reward(loot: Loot) {
+        this.coins += loot.coins;
+        this.experience += loot.experience;
+    }
+
+    reduceHitPoints(reduceBy) {
+        reduceBy = this.hitPoints < reduceBy ? this.hitPoints : reduceBy;
+        this.skills.currentHitPoints -= reduceBy;
+        this.hitPointDisplay.addDamageDisplay(reduceBy);
+
+        if(this.hitPoints <= 0) {
+            this.dies();
+        }
+
+        return true;
     }
 
     get skills(): Skills {
@@ -285,32 +329,15 @@ export default class Character extends Container {
         return this.weapon.attack;
     }
 
-    get hitPoints(): number {
-        return this.skills.currentHitPoints;
+    get experience(): number {
+        return this._experience;
     }
 
-    dies() {
-        this.alive = false;
-        this.scene.tweens.add({
-            targets: this,
-            alpha: 0,
-            paused: false,
-            duration: 1000,
-            onComplete: () => {
-                this.destroy();
-            }
-        })
-    }
-
-    reduceHitPoints(reduceBy) {
-        reduceBy = this.hitPoints < reduceBy ? this.hitPoints : reduceBy;
-        this.skills.currentHitPoints -= reduceBy;
-        this.hitPointDisplay.addDamageDisplay(reduceBy);
-
-        if(this.hitPoints <= 0) {
-            this.dies();
+    set experience(value: number) {
+        this._experience = value;
+        this.emit('onExperienceChange');
+        if(Experience.getLevel(this._experience - value) < Experience.getLevel(this._experience)) {
+            this.emit('onLevelUp');
         }
-
-        return true;
     }
 }
