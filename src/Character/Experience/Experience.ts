@@ -13,7 +13,7 @@ export default class Experience {
         return level ? level : 1;
     }
 
-    static getExperience(level: number) {
-        return experienceLevels[level];
+    static getRequiredExperience(level: number) {
+        return experienceLevels[level + 1];
     }
 }

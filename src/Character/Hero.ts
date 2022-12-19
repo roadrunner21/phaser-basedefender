@@ -3,6 +3,7 @@ import Character, { Direction } from "./Character";
 import {DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT, RIGHT, UP, UP_LEFT, UP_RIGHT} from "../const"
 import Enemy from "./Enemy";
 import ExperienceBar from "./Interface/ExperienceBar";
+import Experience from "./Experience/Experience";
 
 let animations = {
     key: 'characters',
@@ -38,7 +39,7 @@ export default class Hero extends Character {
         this.body.setImmovable(true);
         this.isHero = true;
 
-        this.experienceBar = new ExperienceBar(this.scene, this.experience)
+        this.experienceBar = new ExperienceBar(this.scene, this.experience, Experience.getLevel(this.totalExperience))
         this.scene.add.existing(this.experienceBar);
 
         this.on('onLevelUp', () => console.log('level up yay'));

@@ -7,6 +7,7 @@ const config = {
     backgroundColor: '#6DAA2B',
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
+    debug: true,
     physics: {
         default: 'arcade',
         arcade: {

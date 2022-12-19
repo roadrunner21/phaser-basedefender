@@ -56,6 +56,8 @@ export default class GameScene extends Phaser.Scene {
         this.characters.runChildUpdate = true;
 
         new Ghost(this, GAME_WIDTH / 3, GAME_HEIGHT / 3);
+        // new Ghost(this, GAME_WIDTH / 5, GAME_HEIGHT / 2);
+        // new Ghost(this, GAME_WIDTH / 9, GAME_HEIGHT / 3);
         this.hero = new Hero(this, GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
         this.physics.world.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT, true, true, true, true)

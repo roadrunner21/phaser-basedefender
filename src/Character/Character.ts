@@ -71,7 +71,7 @@ export default class Character extends Container {
     lastAttacker: Character;
     coins: number = 0;
 
-    private _experience: number = 8;
+    private _totalExperience: number = 12;
     private _radius: number;
     private _targets: Character[];
     private _weapon: Weapon;
@@ -282,7 +282,7 @@ export default class Character extends Container {
 
     reward(loot: Loot) {
         this.coins += loot.coins;
-        this.experience += loot.experience;
+        this.addExperience(loot.experience);
     }
 
     reduceHitPoints(reduceBy) {
@@ -329,15 +329,30 @@ export default class Character extends Container {
         return this.weapon.attack;
     }
 
-    get experience(): number {
-        return this._experience;
+    addExperience(value: number): number {
+        return this.totalExperience += value;
     }
 
-    set experience(value: number) {
-        this._experience = value;
+    get experience(): number {
+        return this.totalExperience - Experience.getRequiredExperience(this.level);
+    }
+
+    get totalExperience(): number {
+        return this._totalExperience;
+    }
+
+    set totalExperience(value: number) {
+        let difference = this._totalExperience - value;
+        this._totalExperience = value;
         this.emit('onExperienceChange');
-        if(Experience.getLevel(this._experience - value) < Experience.getLevel(this._experience)) {
+
+        if(Experience.getLevel(this._totalExperience - difference) < Experience.getLevel(this.experience)) {
             this.emit('onLevelUp');
         }
+
+    }
+
+    get level(): number {
+        return Experience.getLevel(this.totalExperience);
     }
 }
